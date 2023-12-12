@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using ControllerBase = Microsoft.AspNetCore.Mvc.ControllerBase;
 using Shop.Models;
+
 namespace Shop.Controllers
 {
     [ApiController]
@@ -19,10 +20,11 @@ namespace Shop.Controllers
        //     repository.SyncMySqlToMsSqlController(products);
        //     var mssqlemployees = new MsSqlRepository().GetEmployees();
        //     return mssqlemployees;
-        }
+        //}
 
 
 
 
     }
+
 }

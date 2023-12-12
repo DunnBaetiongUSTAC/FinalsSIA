@@ -117,6 +117,124 @@ namespace Shop.Models
 
         }
 
+        public Product GetProductById(int productId)
+        {
+            Product product = null;
+            string connectionString = "server=localhost;port=3306;database=sia2finalsmysql;username=root;password='';charset=utf8;";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = @"
+                SELECT 
+                    p.ProductId, 
+                    p.ProductName, 
+                    p.SupplierId, 
+                    s.SupplierName,  
+                    p.CategoryId, 
+                    c.CategoryName,  
+                    p.QuantityPerUnit, 
+                    p.UnitPrice, 
+                    p.UnitsInStock, 
+                    p.UnitsInOrder, 
+                    p.ReorderLevel, 
+                    p.Discontinued
+                FROM 
+                    Products p
+                JOIN 
+                    Suppliers s ON p.SupplierId = s.SupplierId
+                JOIN 
+                    Categories c ON p.CategoryId = c.CategoryId
+                WHERE
+                    p.ProductId = @ProductId";
+
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ProductId", productId);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            product = new Product();
+                            product.ProductId = reader.GetInt32("ProductId");
+                            product.ProductName = reader.GetString("ProductName");
+                            product.SupplierId = reader.GetInt32("SupplierId");
+                            product.SupplierName = reader.GetString("SupplierName");
+                            product.CategoryId = reader.GetInt32("CategoryId");
+                            product.CategoryName = reader.GetString("CategoryName");
+                            product.QuantityPerUnit = reader.GetInt32("QuantityPerUnit");
+                            product.UnitPrice = reader.GetInt32("UnitPrice");
+                            product.UnitsInStock = reader.GetInt32("UnitsInStock");
+                            product.UnitsInOrder = reader.GetInt32("UnitsInOrder");
+                            product.ReorderLevel = reader.GetInt32("ReorderLevel");
+                            product.Discontinued = reader.GetBoolean("Discontinued");
+                        }
+                    }
+                }
+            }
+
+            return product;
+        }
+
+
+        public void UpdateProduct(Product product)
+        {
+            string connectionString = "server=localhost;port=3306;database=sia2finalsmysql;username=root;password='';charset=utf8;";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+
+                // Resolve SupplierId and CategoryId based on SupplierName and CategoryName
+                int supplierId = GetSupplierIdByName(product.SupplierName, connection);
+                int categoryId = GetCategoryIdByName(product.CategoryName, connection);
+
+                MySqlCommand cmd = new MySqlCommand(
+                    "UPDATE products SET " +
+                    "ProductName = @ProductName, " +
+                    "SupplierId = @SupplierId, " +
+                    "CategoryId = @CategoryId, " +
+                    "QuantityPerUnit = @QuantityPerUnit, " +
+                    "UnitPrice = @UnitPrice, " +
+                    "UnitsInStock = @UnitsInStock, " +
+                    "UnitsInOrder = @UnitsInOrder, " +
+                    "ReorderLevel = @ReorderLevel, " +
+                    "Discontinued = @Discontinued " +
+                    "WHERE ProductId = @ProductId", connection);
+
+                cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
+                cmd.Parameters.AddWithValue("@SupplierId", supplierId);
+                cmd.Parameters.AddWithValue("@CategoryId", categoryId);
+                cmd.Parameters.AddWithValue("@QuantityPerUnit", product.QuantityPerUnit);
+                cmd.Parameters.AddWithValue("@UnitPrice", product.UnitPrice);
+                cmd.Parameters.AddWithValue("@UnitsInStock", product.UnitsInStock);
+                cmd.Parameters.AddWithValue("@UnitsInOrder", product.UnitsInOrder);
+                cmd.Parameters.AddWithValue("@ReorderLevel", product.ReorderLevel);
+                cmd.Parameters.AddWithValue("@Discontinued", product.Discontinued);
+                cmd.Parameters.AddWithValue("@ProductId", product.ProductId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void DeleteProduct(int productId)
+        {
+            string connectionString = "server=localhost;port=3306;database=sia2finalsmysql;username=root;password='';charset=utf8;";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+
+                MySqlCommand cmd = new MySqlCommand("DELETE FROM products WHERE ProductId = @ProductId", connection);
+                cmd.Parameters.AddWithValue("@ProductId", productId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
         private int GetSupplierIdByName(string supplierName, MySqlConnection connection)
         {
             int supplierId = 0; // Default value if not found
